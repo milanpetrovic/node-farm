@@ -17,13 +17,17 @@ const url = require('url');
 // });
 // console.log('Reading file...');
 
+let overview;
+fs.readFile('./templates/overview.html', 'utf-8', (err, data) => {
+    overview = data;
+});
 
 
 ///////////////////////////////////// SERVER //////////////////////////////////////////
 const server = http.createServer((request, response) => {
     const pathName = request.url;
     if (pathName === '/' || pathName === '/overview') {
-        response.end('This is the OVERVIEW');
+        response.end(`${overview}`);
     } else if (pathName === '/product') {
         response.end('This is the PRODUCT');
     } else {
