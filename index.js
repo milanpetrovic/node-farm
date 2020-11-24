@@ -2,23 +2,6 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 
-//////////////////////////// FILES READING / WRITING //////////////////////////////////
-// fs.readFile('./txt/start.txt', 'utf-8', (err, data1) => {
-//     fs.readFile(`./txt/${data1}.txt`, 'utf-8', (err, data2) => {
-//         console.log(data2);
-//         fs.readFile(`./txt/append.txt`, 'utf-8', (err, data3) => {
-//             console.log(data3);
-
-//             fs.writeFile('./txt/final.txt', `${data2}\n${data3}`, 'utf-8', err => {
-//                 console.log('Your file has been written');
-//             });
-//         });
-//     });
-// });
-// console.log('Reading file...');
-
-
-///////////////////////////////////// SERVER /////////////////////////////////////////
 const replaceTemplate = (tmpl, product) => {
     let output = tmpl.replace(/{%ID%}/g, product.id);
     output = output.replace(/{%PRODUCT_NAME%}/g, product.productName);
@@ -45,23 +28,21 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 const dataObject = JSON.parse(data);
 
 const server = http.createServer((request, response) => {
-    const pathName = request.url;
+    const {query, pathname} = url.parse(request.url, true);
     // Overview page
-    if (pathName === '/' || pathName === '/overview') {
+    if (pathname === '/' || pathname === '/overview') {
         response.writeHead(200, {'Content-type': 'text/html'});
         const cardsHtml = dataObject.map(el => replaceTemplate(tmplCard, el)).join('');
         const output = tmplOverview.replace(/{%PRODUCT_CARDS%}/g, cardsHtml);
         response.end(output);
 
     // Product page
-    } else if (pathName === '/product') {
-        response.end('Product page');
-
-    // API
-    } else if (pathName === '/api') {
-        response.writeHead(200, {'Content-type': 'application/json'});
-        response.end(data);
-
+    } else if (pathname === '/product') {
+        response.writeHead(200, {'Content-type': 'text/html'});
+        const product = dataObject[query.id];
+        const output = replaceTemplate(tmplProduct, product);
+        response.end(output);
+    
     // 404
     } else {
         response.writeHead(404, {
